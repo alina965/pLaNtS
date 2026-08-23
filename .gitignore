@@ -1,0 +1,17 @@
+# env
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+
+# Go
+*.exe
+*.test
+/bin/
+
+# OS
+.DS_Store
+Thumbs.db
