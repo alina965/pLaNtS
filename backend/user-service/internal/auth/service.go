@@ -2,8 +2,9 @@ package auth
 
 import (
 	"errors"
-	"pLaNtS/internal/domain"
 	"time"
+
+	"github.com/alina965/pLaNtS/user-service/internal/domain"
 
 	"github.com/google/uuid"
 )

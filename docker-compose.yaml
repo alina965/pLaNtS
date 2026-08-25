@@ -36,5 +36,18 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  plants-service:
+    build:
+      context: ./backend/plant-service
+      dockerfile: Dockerfile
+    container_name: plants-service
+    ports:
+      - "8081:8081"
+    environment:
+      ADDR: ":8081"
+      TIMEOUT: "10s"
+      PERENUAL_KEY: ${PERENUAL_KEY}
+    restart: unless-stopped
+
 volumes:
   postgres_data:

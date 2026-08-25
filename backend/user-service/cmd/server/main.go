@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	"pLaNtS/internal/app"
-	"pLaNtS/internal/config"
+
+	"github.com/alina965/pLaNtS/user-service/internal/app"
+	"github.com/alina965/pLaNtS/user-service/internal/config"
 )
 
 func main() {
