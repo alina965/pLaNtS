@@ -1,10 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import FlowerMascot from "../components/FlowerMascot";
 import styles from "./RegisterPage.module.css";
+
 
 type AuthMode = "login" | "register";
 
 function RegisterPage() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<AuthMode>("register");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -60,6 +63,9 @@ function RegisterPage() {
     }
 
     setErrorMessage("");
+    navigate("/dashboard", {
+  replace: true,
+});
   }
 
   return (

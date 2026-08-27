@@ -365,11 +365,7 @@
   border: 0;
   border-radius: 17px;
   color: var(--color-lilac-pale);
-  background: linear-gradient(
-    135deg,
-    var(--color-palm-leaf),
-    var(--color-dusty-olive-dark)
-  );
+  background-color: var(--color-dusty-olive);
   font: inherit;
   font-size: 15px;
   font-weight: 800;
@@ -379,12 +375,12 @@
   transition:
     transform 180ms ease,
     box-shadow 180ms ease,
-    filter 180ms ease;
+    background-color 180ms ease;
 }
 
 .submitButton:hover {
   transform: translateY(-2px);
-  filter: saturate(1.08);
+  background-color: var(--color-dusty-olive-dark);
   box-shadow: 0 16px 28px rgba(76, 85, 55, 0.4);
 }
 
