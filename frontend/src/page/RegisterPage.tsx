@@ -89,7 +89,13 @@ function RegisterPage() {
 
       <section className={styles.formSection}>
         <div className={styles.authCard}>
-          <div className={styles.tabs} role="tablist" aria-label="Авторизация">
+          <div
+            className={`${styles.tabs} ${
+              isRegisterMode ? styles.tabsRegister : styles.tabsLogin
+            }`}
+            role="tablist"
+            aria-label="Авторизация"
+          >
             <button
               id="login-tab"
               type="button"
@@ -120,7 +126,12 @@ function RegisterPage() {
             aria-labelledby={isRegisterMode ? "register-tab" : "login-tab"}
             className={styles.formPanel}
           >
-            <div className={styles.heading}>
+            <div
+              key={mode}
+              className={`${styles.heading} ${
+                isRegisterMode ? styles.headingRegister : styles.headingLogin
+              }`}
+            >
               <h1>{isRegisterMode ? "Создайте аккаунт" : "Добро пожаловать"}</h1>
               <p>
                 {isRegisterMode
@@ -130,41 +141,50 @@ function RegisterPage() {
             </div>
 
             <form className={styles.form} onSubmit={handleSubmit} noValidate>
-              {isRegisterMode && (
-                <div className={styles.nameFields}>
-                  <div className={styles.field}>
-                    <label htmlFor="firstName">Имя</label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      autoComplete="given-name"
-                      placeholder="Анна"
-                      value={firstName}
-                      onChange={(event) => {
-                        setFirstName(event.target.value);
-                        clearError();
-                      }}
-                    />
-                  </div>
+              <div
+                className={`${styles.expandableFields} ${
+                  isRegisterMode ? styles.expandableFieldsOpen : ""
+                }`}
+                aria-hidden={!isRegisterMode}
+              >
+                <div className={styles.expandableFieldsInner}>
+                  <div className={styles.nameFields}>
+                    <div className={styles.field}>
+                      <label htmlFor="firstName">Имя</label>
+                      <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        autoComplete="given-name"
+                        placeholder="Анна"
+                        value={firstName}
+                        disabled={!isRegisterMode}
+                        onChange={(event) => {
+                          setFirstName(event.target.value);
+                          clearError();
+                        }}
+                      />
+                    </div>
 
-                  <div className={styles.field}>
-                    <label htmlFor="lastName">Фамилия</label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      autoComplete="family-name"
-                      placeholder="Иванова"
-                      value={lastName}
-                      onChange={(event) => {
-                        setLastName(event.target.value);
-                        clearError();
-                      }}
-                    />
+                    <div className={styles.field}>
+                      <label htmlFor="lastName">Фамилия</label>
+                      <input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        autoComplete="family-name"
+                        placeholder="Иванова"
+                        value={lastName}
+                        disabled={!isRegisterMode}
+                        onChange={(event) => {
+                          setLastName(event.target.value);
+                          clearError();
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
               <div className={styles.field}>
                 <label htmlFor="email">Email</label>
@@ -199,23 +219,33 @@ function RegisterPage() {
                 />
               </div>
 
-              {isRegisterMode && (
-                <div className={styles.field}>
-                  <label htmlFor="passwordConfirmation">Подтвердите пароль</label>
-                  <input
-                    id="passwordConfirmation"
-                    name="passwordConfirmation"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Повторите пароль"
-                    value={passwordConfirmation}
-                    onChange={(event) => {
-                      setPasswordConfirmation(event.target.value);
-                      clearError();
-                    }}
-                  />
+              <div
+                className={`${styles.expandableFields} ${
+                  isRegisterMode ? styles.expandableFieldsOpen : ""
+                }`}
+                aria-hidden={!isRegisterMode}
+              >
+                <div className={styles.expandableFieldsInner}>
+                  <div className={styles.field}>
+                    <label htmlFor="passwordConfirmation">
+                      Подтвердите пароль
+                    </label>
+                    <input
+                      id="passwordConfirmation"
+                      name="passwordConfirmation"
+                      type="password"
+                      autoComplete="new-password"
+                      placeholder="Повторите пароль"
+                      value={passwordConfirmation}
+                      disabled={!isRegisterMode}
+                      onChange={(event) => {
+                        setPasswordConfirmation(event.target.value);
+                        clearError();
+                      }}
+                    />
+                  </div>
                 </div>
-              )}
+              </div>
 
               <div className={styles.messageArea} aria-live="polite">
                 {errorMessage && (

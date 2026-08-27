@@ -15,7 +15,41 @@
     background-position: 50% 100%;
   }
 }
+@keyframes enter-from-right {
+  from {
+    opacity: 0;
+    transform:
+      perspective(700px)
+      translateX(24px)
+      rotateY(-5deg);
+  }
 
+  to {
+    opacity: 1;
+    transform:
+      perspective(700px)
+      translateX(0)
+      rotateY(0);
+  }
+}
+
+@keyframes enter-from-left {
+  from {
+    opacity: 0;
+    transform:
+      perspective(700px)
+      translateX(-24px)
+      rotateY(5deg);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      perspective(700px)
+      translateX(0)
+      rotateY(0);
+  }
+}
 .page {
   position: relative;
   min-height: 100vh;
@@ -106,29 +140,68 @@
 }
 
 .tabs {
+  position: relative;
+  isolation: isolate;
+
   display: grid;
-  grid-template-columns: 0.75fr 1.65fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
+
   padding: 5px;
   border-radius: 24px;
   background: rgba(25, 61, 61, 0.1);
 }
 
+.tabs::before {
+  content: "";
+
+  position: absolute;
+  z-index: 0;
+
+  top: 5px;
+  bottom: 5px;
+  left: 5px;
+
+  width: calc((100% - 16px) / 2);
+
+  border-radius: 19px;
+  background: var(--color-emerald-depths);
+  box-shadow: 0 8px 18px rgba(32, 74, 57, 0.28);
+
+  pointer-events: none;
+
+  transition: transform 420ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tabsLogin::before {
+  transform: translateX(0);
+}
+
+.tabsRegister::before {
+  transform: translateX(calc(100% + 6px));
+}
+
 .tab {
+  position: relative;
+  z-index: 1;
+
   min-height: 54px;
   padding: 10px 18px;
   border: 0;
   border-radius: 19px;
+
   color: var(--color-dark-slate-grey-light);
   background: transparent;
+
   font: inherit;
   font-size: 14px;
   font-weight: 700;
+
   cursor: pointer;
+
   transition:
     color 180ms ease,
-    background-color 180ms ease,
-    box-shadow 180ms ease,
     transform 180ms ease;
 }
 
@@ -145,8 +218,8 @@
 
 .activeTab {
   color: var(--color-lilac-pale);
-  background: var(--color-emerald-depths);
-  box-shadow: 0 8px 18px rgba(32, 74, 57, 0.28);
+  background: transparent;
+  box-shadow: none;
 }
 
 .activeTab:hover {
@@ -177,10 +250,45 @@
   line-height: 1.5;
 }
 
+.headingRegister {
+  animation: enter-from-right 360ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.headingLogin {
+  animation: enter-from-left 360ms
+    cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .form {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.expandableFields {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-bottom: -16px;
+  opacity: 0;
+  transform: translateY(-12px);
+  transition:
+    grid-template-rows 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    margin-bottom 420ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 220ms ease,
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.expandableFieldsOpen {
+  grid-template-rows: 1fr;
+  margin-bottom: 0;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.expandableFieldsInner {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .nameFields {
@@ -231,6 +339,10 @@
   border-color: var(--color-emerald-depths);
   background: rgba(238, 225, 239, 0.94);
   box-shadow: 0 0 0 4px rgba(44, 94, 72, 0.12);
+}
+
+.field input:disabled {
+  pointer-events: none;
 }
 
 .messageArea {
@@ -317,7 +429,6 @@
   }
 
   .tabs {
-    grid-template-columns: 0.7fr 1.6fr;
     border-radius: 20px;
   }
 
@@ -344,7 +455,14 @@
 
   .tab,
   .field input,
-  .submitButton {
+  .submitButton,
+  .tabs::before,
+  .expandableFields {
     transition: none;
+  }
+
+  .headingRegister,
+  .headingLogin {
+    animation: none;
   }
 }
