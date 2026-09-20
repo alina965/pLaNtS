@@ -237,7 +237,7 @@ function DashboardPage() {
           <div className={styles.weekHeading}>
             <div>
               <span className={styles.eyebrow}>Расписание ухода</span>
-              <h2 id="week-title">{capitalize(weekRange)}</h2>
+              
               <p>Нажмите на день, чтобы посмотреть растения</p>
             </div>
 

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import FlowerMascot from "../components/FlowerMascot";
+import { login, register } from "../api/authApi";
 import styles from "./RegisterPage.module.css";
 
 
@@ -35,7 +36,7 @@ function RegisterPage() {
     setAnimationKey((currentKey) => currentKey + 1);
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (
