@@ -12,9 +12,6 @@ function App() {
     <Routes>
       <Route path="/auth" element={<RegisterPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
-       
-
-
       <Route path="/*" element={<Navigate to="/auth" />} />
     </Routes>
   );

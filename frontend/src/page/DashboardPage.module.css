@@ -1,7 +1,834 @@
 .page {
-  min-height: 100vh;
-  padding: 32px;
+  --page-background: color-mix(
+    in srgb,
+    var(--color-palm-leaf-light) 15%,
+    var(--color-lilac-pale)
+  );
+  --card-background: color-mix(
+    in srgb,
+    var(--color-lilac-pale) 88%,
+    white
+  );
 
+  min-height: 100svh;
+  padding: 28px clamp(18px, 4vw, 56px) 112px;
+  overflow-x: hidden;
+  color: var(--color-dark-slate-grey);
+  background-color: var(--page-background);
+}
+
+.appShell {
+  width: min(100%, 1180px);
+  margin: 0 auto;
+}
+
+.topBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  grid-template-areas: "left date right";
+  align-items: center;
+  gap: 24px;
+  padding: 10px 0 30px;
+}
+
+.leftActions,
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leftActions {
+  grid-area: left;
+}
+
+.rightActions {
+  grid-area: right;
+  justify-content: flex-end;
+}
+
+.profileButton,
+.navigationButton {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(25, 61, 61, 0.14);
+  color: var(--color-dark-slate-grey);
+  background-color: rgba(238, 225, 239, 0.78);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(25, 61, 61, 0.06);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.profileButton {
+  padding: 5px 14px 5px 5px;
+  border-radius: 999px;
+}
+
+.navigationButton {
+  padding: 0 16px;
+  border-radius: 15px;
+}
+
+.profileButton:hover,
+.navigationButton:hover {
+  transform: translateY(-2px);
+  border-color: rgba(44, 94, 72, 0.36);
+  background-color: var(--color-lilac-pale);
+}
+
+.avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-lilac-pale);
+  background-color: var(--color-emerald-depths);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+}
+
+.plantIcon {
+  position: relative;
+  width: 18px;
+  height: 21px;
+  margin-left: 5px;
+  border-left: 2px solid var(--color-emerald-depths);
+}
+
+.plantIcon::before,
+.plantIcon::after {
+  content: "";
+  position: absolute;
+  width: 9px;
+  height: 6px;
+  background-color: var(--color-palm-leaf);
+}
+
+.plantIcon::before {
+  top: 3px;
+  left: -10px;
+  border-radius: 8px 2px 8px 2px;
+  transform: rotate(22deg);
+}
+
+.plantIcon::after {
+  top: 9px;
+  left: 1px;
+  border-radius: 2px 8px 2px 8px;
+  transform: rotate(-22deg);
+}
+
+.calendarIcon {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-emerald-depths);
+  border-radius: 5px;
+}
+
+.calendarIcon::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: -2px;
+  left: -2px;
+  border-top: 2px solid var(--color-emerald-depths);
+}
+
+.calendarIcon::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 3px;
+  width: 7px;
+  height: 5px;
+  border-right: 2px solid var(--color-emerald-depths);
+  border-left: 2px solid var(--color-emerald-depths);
+}
+
+.dateHeading {
+  grid-area: date;
+  text-align: center;
+}
+
+.dateHeading > span,
+.eyebrow {
+  color: var(--color-dusty-olive);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.dateHeading h1 {
+  margin: 5px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.weekPanel {
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid rgba(25, 61, 61, 0.11);
+  border-radius: 28px;
+  background-color: var(--card-background);
+  box-shadow: 0 18px 54px rgba(25, 61, 61, 0.09);
+}
+
+.weekHeading,
+.plantsHeading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.weekHeading {
+  margin-bottom: 20px;
+}
+
+.weekHeading h2,
+.plantsHeading h2 {
+  margin: 5px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+}
+
+.weekHeading h2 {
+  font-size: 22px;
+}
+
+.weekHeading p {
+  margin: 7px 0 0;
+  color: var(--color-dark-slate-grey-light);
+  font-size: 13px;
+}
+
+.weekControls {
+  display: flex;
+  gap: 8px;
+}
+
+.weekArrow {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(25, 61, 61, 0.18);
+  border-radius: 14px;
   color: var(--color-dark-slate-grey);
   background-color: var(--color-lilac-pale);
+  font: inherit;
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.weekArrow span {
+  transform: translateY(-2px);
+}
+
+.weekArrow:hover {
+  transform: translateY(-2px);
+  border-color: rgba(44, 94, 72, 0.36);
+  background-color: var(--color-lilac-light);
+}
+
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(6px, 1.2vw, 13px);
+}
+
+.dayButton {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 112px;
+  padding: 14px 7px 12px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(25, 61, 61, 0.08);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.dayButton:hover {
+  transform: translateY(-3px);
+}
+
+.weekday {
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dayNumber {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 27px;
+  line-height: 1;
+}
+
+.dayStatus {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 9px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.todayDot {
+  position: absolute;
+  bottom: 6px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.missedDay {
+  color: var(--color-lilac-pale);
+  background-color: var(--color-lilac-dark);
+}
+
+.partialDay {
+  color: var(--color-lilac-pale);
+  background-color: var(--color-dusty-olive);
+}
+
+.completedDay {
+  color: var(--color-lilac-pale);
+  background-color: var(--color-emerald-depths);
+}
+
+.emptyDay {
+  color: var(--color-dark-slate-grey);
+  background-color: #b7bcb8;
+}
+
+.selectedDay {
+  border-color: var(--color-dark-slate-grey);
+  box-shadow:
+    0 0 0 3px rgba(238, 225, 239, 0.9),
+    0 0 0 6px rgba(25, 61, 61, 0.22),
+    0 14px 28px rgba(25, 61, 61, 0.18);
+  transform: translateY(-3px);
+}
+
+.legend {
+  display: flex;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 9px 18px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--color-dark-slate-grey-light);
+  font-size: 11px;
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+}
+
+.plantsSection {
+  margin-top: clamp(36px, 5vw, 56px);
+}
+
+.plantsHeading {
+  margin-bottom: 22px;
+}
+
+.plantsHeading h2 {
+  font-size: clamp(28px, 4vw, 42px);
+}
+
+.progressLabel {
+  padding: 9px 13px;
+  border-radius: 999px;
+  color: var(--color-emerald-depths);
+  background-color: rgba(135, 143, 75, 0.17);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.plantGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.plantCard {
+  display: grid;
+  grid-template-columns: 106px 1fr auto;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  padding: 18px 20px 18px 18px;
+  border: 1px solid rgba(25, 61, 61, 0.1);
+  border-radius: 25px;
+  background-color: var(--card-background);
+  box-shadow: 0 14px 38px rgba(25, 61, 61, 0.07);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.plantCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 44px rgba(25, 61, 61, 0.12);
+}
+
+.plantPicture {
+  position: relative;
+  width: 106px;
+  height: 112px;
+  overflow: hidden;
+  border-radius: 19px;
+  background-color: rgba(166, 173, 104, 0.2);
+}
+
+.plantPicture.lilac {
+  background-color: rgba(193, 151, 197, 0.22);
+}
+
+.plantPicture.emerald {
+  background-color: rgba(44, 94, 72, 0.15);
+}
+
+.plantPicture.olive {
+  background-color: rgba(99, 109, 72, 0.18);
+}
+
+.stem {
+  position: absolute;
+  bottom: 28px;
+  left: 52px;
+  width: 4px;
+  height: 50px;
+  border-radius: 5px;
+  background-color: var(--color-emerald-depths);
+}
+
+.leaf {
+  position: absolute;
+  z-index: 1;
+  width: 29px;
+  height: 20px;
+  background-color: var(--color-palm-leaf);
+}
+
+.lilac .leaf {
+  background-color: var(--color-lilac-dark);
+}
+
+.olive .leaf {
+  background-color: var(--color-dusty-olive);
+}
+
+.leafLeft {
+  top: 42px;
+  left: 25px;
+  border-radius: 22px 4px 22px 4px;
+  transform: rotate(24deg);
+}
+
+.leafTop {
+  top: 20px;
+  left: 40px;
+  border-radius: 22px 4px 22px 4px;
+  transform: rotate(48deg);
+}
+
+.leafRight {
+  top: 48px;
+  right: 22px;
+  border-radius: 4px 22px 4px 22px;
+  transform: rotate(-22deg);
+}
+
+.pot {
+  position: absolute;
+  z-index: 2;
+  right: 32px;
+  bottom: 15px;
+  left: 32px;
+  height: 29px;
+  border-radius: 5px 5px 14px 14px;
+  background-color: var(--color-dusty-olive);
+}
+
+.plantInfo {
+  min-width: 0;
+}
+
+.taskState {
+  color: var(--color-dusty-olive);
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.plantInfo h3 {
+  margin: 7px 0 6px;
+  overflow: hidden;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plantInfo p {
+  margin: 0;
+  color: var(--color-dark-slate-grey-light);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.completeButton {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  border: 2px solid var(--color-dusty-olive-light);
+  border-radius: 50%;
+  color: var(--color-lilac-pale);
+  background-color: transparent;
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background-color 180ms ease;
+}
+
+.completeButton:hover {
+  transform: scale(1.06);
+  border-color: var(--color-emerald-depths);
+}
+
+.completeButtonDone {
+  border-color: var(--color-emerald-depths);
+  background-color: var(--color-emerald-depths);
+}
+
+.emptyState {
+  display: flex;
+  min-height: 230px;
+  padding: 44px 24px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(44, 94, 72, 0.26);
+  border-radius: 25px;
+  text-align: center;
+  background-color: rgba(216, 183, 219, 0.35);
+}
+
+.emptyLeaf {
+  width: 42px;
+  height: 30px;
+  margin-bottom: 18px;
+  border-radius: 30px 4px 30px 4px;
+  background-color: var(--color-lilac-dark);
+  transform: rotate(-18deg);
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 23px;
+  font-weight: 500;
+}
+
+.emptyState p {
+  margin: 8px 0 0;
+  color: var(--color-dark-slate-grey-light);
+  font-size: 14px;
+}
+
+.plantSummary {
+  margin: 14px 4px 0;
+  color: var(--color-dark-slate-grey-light);
+  font-size: 12px;
+}
+
+.addButton {
+  position: fixed;
+  z-index: 10;
+  right: max(24px, calc((100vw - 1180px) / 2 + 24px));
+  bottom: 28px;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 22px;
+  color: var(--color-lilac-pale);
+  background-color: var(--color-emerald-depths);
+  cursor: pointer;
+  box-shadow: 0 18px 34px rgba(32, 74, 57, 0.34);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.addButton span {
+  font-family: Arial, sans-serif;
+  font-size: 36px;
+  font-weight: 300;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.addButton:hover {
+  transform: translateY(-3px) rotate(3deg);
+  background-color: var(--color-emerald-depths-dark);
+  box-shadow: 0 22px 40px rgba(32, 74, 57, 0.42);
+}
+
+.profileButton:focus-visible,
+.navigationButton:focus-visible,
+.weekArrow:focus-visible,
+.dayButton:focus-visible,
+.completeButton:focus-visible,
+.addButton:focus-visible {
+  outline: 3px solid rgba(44, 94, 72, 0.32);
+  outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+  .topBar {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "date date"
+      "left right";
+    gap: 22px 14px;
+  }
+
+  .dateHeading {
+    padding-top: 6px;
+  }
+
+  .plantGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .page {
+    padding: 14px 12px 98px;
+  }
+
+  .topBar {
+    padding-bottom: 22px;
+  }
+
+  .actionLabel {
+    display: none;
+  }
+
+  .profileButton {
+    padding: 4px;
+  }
+
+  .navigationButton {
+    width: 42px;
+    min-height: 42px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 13px;
+  }
+
+  .dateHeading h1 {
+    font-size: 27px;
+  }
+
+  .weekPanel {
+    padding: 17px 9px 15px;
+    border-radius: 22px;
+  }
+
+  .weekHeading {
+    padding: 0 8px;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .weekHeading p {
+    font-size: 12px;
+  }
+
+  .weekArrow {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .week {
+    gap: 2px;
+  }
+
+  .dayButton {
+    min-height: 88px;
+    padding: 10px 2px;
+    gap: 6px;
+    border-radius: 15px;
+  }
+
+  .weekday {
+    font-size: 9px;
+  }
+
+  .dayNumber {
+    font-size: 21px;
+  }
+
+  .dayStatus {
+    display: none;
+  }
+
+  .legend {
+    padding: 0 8px;
+    gap: 8px 12px;
+  }
+
+  .plantsSection {
+    margin-top: 34px;
+  }
+
+  .plantsHeading {
+    align-items: flex-start;
+  }
+
+  .plantsHeading h2 {
+    font-size: 29px;
+  }
+
+  .progressLabel {
+    display: none;
+  }
+
+  .plantCard {
+    grid-template-columns: 82px 1fr auto;
+    gap: 14px;
+    padding: 13px;
+    border-radius: 21px;
+  }
+
+  .plantPicture {
+    width: 82px;
+    height: 92px;
+  }
+
+  .stem {
+    bottom: 24px;
+    left: 40px;
+    height: 39px;
+  }
+
+  .leaf {
+    width: 23px;
+    height: 16px;
+  }
+
+  .leafLeft {
+    top: 36px;
+    left: 17px;
+  }
+
+  .leafTop {
+    top: 18px;
+    left: 30px;
+  }
+
+  .leafRight {
+    top: 39px;
+    right: 16px;
+  }
+
+  .pot {
+    right: 24px;
+    bottom: 12px;
+    left: 24px;
+    height: 24px;
+  }
+
+  .plantInfo h3 {
+    font-size: 18px;
+  }
+
+  .completeButton {
+    width: 36px;
+    height: 36px;
+  }
+
+  .addButton {
+    right: 18px;
+    bottom: 20px;
+    width: 58px;
+    height: 58px;
+    border-radius: 19px;
+  }
+}
+
+@media (max-width: 390px) {
+  .plantCard {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+  }
+
+  .plantPicture {
+    width: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .profileButton,
+  .navigationButton,
+  .weekArrow,
+  .dayButton,
+  .plantCard,
+  .completeButton,
+  .addButton {
+    transition: none;
+  }
 }
