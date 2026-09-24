@@ -17,11 +17,8 @@ func NewWateringEventsRepository(db *pgxpool.Pool) *WateringEventsRepository {
 	return &WateringEventsRepository{db: db}
 }
 
-func (r *WateringEventsRepository) CreateWateringEvent(event *domain.WateringEvent) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err := r.db.Exec(ctx, `
+func (r *WateringEventsRepository) CreateWateringEvent(ctx context.Context, db DBTX, event *domain.WateringEvent) error {
+	_, err := db.Exec(ctx, `
 	INSERT INTO watering_events (
 		id,
 		user_plant_id,
@@ -32,11 +29,7 @@ func (r *WateringEventsRepository) CreateWateringEvent(event *domain.WateringEve
 		event.UserPlantID,
 		event.WateredAt,
 		event.CreatedAt)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func (r *WateringEventsRepository) GetWateringEventsByUserPlantID(userPlantID uuid.UUID) ([]*domain.WateringEvent, error) {

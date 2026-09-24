@@ -7,21 +7,21 @@ import (
 )
 
 type UserPlant struct {
-	ID                   uuid.UUID  `db:"id"`
-	SpeciesID            int        `db:"species_id"`
-	UserID               uuid.UUID  `db:"user_id"`
-	Name                 string     `db:"name"`
-	WateringIntervalDays int        `db:"watering_interval_days"`
-	Status               string     `db:"status"`
-	LastWateredAt        time.Time  `db:"last_watered_at"`
-	NextWateringAt       time.Time  `db:"next_watering_at"`
-	CreatedAt            time.Time  `db:"created_at"`
-	UpdatedAt            *time.Time `db:"updated_at"`
+	ID                   uuid.UUID  `json:"id"`
+	SpeciesID            int        `json:"speciesId"`
+	UserID               uuid.UUID  `json:"userId"`
+	Name                 string     `json:"name"`
+	WateringIntervalDays int        `json:"wateringIntervalDays"`
+	Status               string     `json:"status"`
+	LastWateredAt        time.Time  `json:"lastWateredAt"`
+	NextWateringAt       time.Time  `json:"nextWateringAt"`
+	CreatedAt            time.Time  `json:"createdAt"`
+	UpdatedAt            *time.Time `json:"updatedAt"`
 }
 
 type WateringEvent struct {
-	ID          uuid.UUID `db:"id"`
-	UserPlantID uuid.UUID `db:"user_plant_id"`
-	WateredAt   time.Time `db:"watered_at"`
-	CreatedAt   time.Time `db:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	UserPlantID uuid.UUID `json:"userPlantId"`
+	WateredAt   time.Time `json:"wateredAt"`
+	CreatedAt   time.Time `json:"createdAt"`
 }

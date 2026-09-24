@@ -138,7 +138,7 @@ func (r *UserPlantsRepository) UpdateUserPlant(plant *domain.UserPlant) error {
 		plant.WateringIntervalDays,
 		plant.Status,
 		plant.NextWateringAt,
-		plant.UpdatedAt,
+		time.Now(),
 		plant.ID,
 		plant.UserID,
 	)
@@ -169,11 +169,8 @@ func (r *UserPlantsRepository) DeleteUserPlantByID(id uuid.UUID, userID uuid.UUI
 	return nil
 }
 
-func (r *UserPlantsRepository) MarkWatered(plant *domain.UserPlant) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	result, err := r.db.Exec(ctx, `
+func (r *UserPlantsRepository) MarkWatered(ctx context.Context, db DBTX, plant *domain.UserPlant) error {
+	result, err := db.Exec(ctx, `
 		UPDATE user_plants
 		SET
 			status = $1,
@@ -184,7 +181,7 @@ func (r *UserPlantsRepository) MarkWatered(plant *domain.UserPlant) error {
 		plant.Status,
 		plant.NextWateringAt,
 		plant.LastWateredAt,
-		plant.UpdatedAt,
+		time.Now(),
 		plant.ID,
 		plant.UserID,
 	)
