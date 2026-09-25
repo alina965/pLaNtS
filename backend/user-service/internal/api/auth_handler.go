@@ -4,7 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"pLaNtS/internal/domain"
+
+	"github.com/alina965/pLaNtS/user-service/internal/domain"
 
 	"github.com/google/uuid"
 )

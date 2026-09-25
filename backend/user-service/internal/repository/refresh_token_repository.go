@@ -3,8 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
-	"pLaNtS/internal/domain"
 	"time"
+
+	"github.com/alina965/pLaNtS/user-service/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"

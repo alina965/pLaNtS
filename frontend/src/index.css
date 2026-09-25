@@ -1,0 +1,40 @@
+:root {
+  --color-lilac: #c197c5;
+  --color-lilac-light: #d8b7db;
+  --color-lilac-pale: #eee1ef;
+  --color-lilac-dark: #9b719f;
+
+  --color-palm-leaf: #878f4b;
+  --color-palm-leaf-light: #a6ad68;
+  --color-palm-leaf-dark: #6e763c;
+
+  --color-dusty-olive: #636d48;
+  --color-dusty-olive-light: #7b855c;
+  --color-dusty-olive-dark: #4c5537;
+
+  --color-emerald-depths: #2c5e48;
+  --color-emerald-depths-light: #43745d;
+  --color-emerald-depths-dark: #204a39;
+
+  --color-dark-slate-grey: #193d3d;
+  --color-dark-slate-grey-light: #315555;
+  --color-dark-slate-grey-dark: #102f2f;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  color: var(--color-dark-slate-grey);
+  background: var(--color-dark-slate-grey);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input {
+  font: inherit;
+}

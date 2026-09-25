@@ -2,8 +2,9 @@ package jwt
 
 import (
 	"fmt"
-	"pLaNtS/internal/domain"
 	"time"
+
+	"github.com/alina965/pLaNtS/user-service/internal/domain"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
