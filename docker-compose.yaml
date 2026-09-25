@@ -11,6 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/user-service/migrations/000001_init.sql:/docker-entrypoint-initdb.d/000001_init.sql:ro
+      - ./backend/user-plants-service/migrations/000001_init.sql:/docker-entrypoint-initdb.d/000002_user_plants.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
       interval: 5s
@@ -28,7 +29,7 @@ services:
       ADDR: ":8080"
       DATABASE_URL: postgres://myuser:mypassword@postgres:5432/mydatabase?sslmode=disable
       JWT_SECRET: ${JWT_SECRET:-change-me}
-      ACCESS_TOKEN_TTL: 1m
+      ACCESS_TOKEN_TTL: 15m
       REFRESH_TOKEN_TTL: 168h
       BCRYPT_COST: "10"
     depends_on:
@@ -36,6 +37,23 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  user-plants-service:
+    build:
+      context: ./backend/user-plants-service
+      dockerfile: Dockerfile
+    container_name: plants-user-plants-service
+    ports:
+      - "8082:8082"
+    environment:
+      ADDR: ":8082"
+      DATABASE_URL: postgres://myuser:mypassword@postgres:5432/mydatabase?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
   plants-service:
     build:
       context: ./backend/plant-service

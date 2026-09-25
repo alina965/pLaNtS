@@ -1,6 +1,8 @@
 package plant
 
 import (
+	"context"
+
 	"github.com/alina965/pLaNtS/plant-service/internal/client"
 	"github.com/alina965/pLaNtS/plant-service/internal/domain"
 )
@@ -14,8 +16,8 @@ func NewService(perenualClient *client.PerenualClient, wikipediaClient *client.W
 	return &Service{perenualClient: perenualClient, wikipediaClient: wikipediaClient}
 }
 
-func (s *Service) GetSpecies(page int, query string) (*domain.SpeciesList, error) {
-	allSpecies, err := s.perenualClient.GetPlants(page, query)
+func (s *Service) GetSpecies(ctx context.Context, page int, query string) (*domain.SpeciesList, error) {
+	allSpecies, err := s.perenualClient.GetPlants(ctx, page, query)
 	if err != nil {
 		return nil, err
 	}
@@ -38,8 +40,8 @@ func (s *Service) GetSpecies(page int, query string) (*domain.SpeciesList, error
 	return result, nil
 }
 
-func (s *Service) GetSpeciesDetails(speciesID int) (*domain.SpeciesDetails, error) {
-	speciesDetails, err := s.perenualClient.GetPlantDetails(speciesID)
+func (s *Service) GetSpeciesDetails(ctx context.Context, speciesID int) (*domain.SpeciesDetails, error) {
+	speciesDetails, err := s.perenualClient.GetPlantDetails(ctx, speciesID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +97,7 @@ func (s *Service) GetSpeciesDetails(speciesID int) (*domain.SpeciesDetails, erro
 	}
 
 	if len(speciesDetails.ScientificName) != 0 {
-		speciesDescription := s.wikipediaClient.GetDescription(speciesDetails.ScientificName[0])
+		speciesDescription := s.wikipediaClient.GetDescription(ctx, speciesDetails.ScientificName[0])
 		if speciesDescription != nil {
 			result.WikipediaDescription = &speciesDescription.Description
 			result.WikipediaExtract = &speciesDescription.Extract

@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -20,12 +21,12 @@ func NewWikipediaClient(timeout time.Duration) *WikipediaClient {
 	return &WikipediaClient{client: &http.Client{Timeout: timeout}}
 }
 
-func (c *WikipediaClient) GetDescription(name string) *PlantDescriptionResponse {
+func (c *WikipediaClient) GetDescription(ctx context.Context, name string) *PlantDescriptionResponse {
 	normalizedName := url.PathEscape(strings.ReplaceAll(strings.TrimSpace(name), " ", "_"))
 
 	fullUrl := wikipediaUrl + normalizedName
 
-	request, err := http.NewRequest(http.MethodGet, fullUrl, nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, fullUrl, nil)
 	if err != nil {
 		return nil
 	}

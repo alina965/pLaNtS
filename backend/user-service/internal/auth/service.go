@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -37,18 +38,18 @@ type TokenService interface {
 }
 
 type RefreshTokenRepository interface {
-	CreateRefreshToken(token *domain.RefreshToken) error
-	FindRefreshTokenByToken(token string) (*domain.RefreshToken, error)
-	DeleteRefreshTokenById(id uuid.UUID) error
+	CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error
+	FindRefreshTokenByToken(ctx context.Context, token string) (*domain.RefreshToken, error)
+	DeleteRefreshTokenById(ctx context.Context, id uuid.UUID) error
 }
 
 type UserRepository interface {
-	CreateUser(user *domain.User) error
-	GetUserById(id uuid.UUID) (*domain.User, error)
-	GetUserByEmail(email string) (*domain.User, error)
+	CreateUser(ctx context.Context, user *domain.User) error
+	GetUserById(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
 }
 
-func (s *Service) Register(email, password, firstName, lastName string) (*domain.TokenResponse, error) {
+func (s *Service) Register(ctx context.Context, email, password, firstName, lastName string) (*domain.TokenResponse, error) {
 	hash, err := s.hasher.Hash(password)
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (s *Service) Register(email, password, firstName, lastName string) (*domain
 		CreatedAt:    time.Now().UTC(),
 	}
 
-	err = s.userRepository.CreateUser(user)
+	err = s.userRepository.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func (s *Service) Register(email, password, firstName, lastName string) (*domain
 
 	refreshToken := s.newRefreshToken(user.ID, tokens.RefreshToken)
 
-	err = s.refreshTokenRepository.CreateRefreshToken(refreshToken)
+	err = s.refreshTokenRepository.CreateRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -87,8 +88,8 @@ func (s *Service) Register(email, password, firstName, lastName string) (*domain
 	}, nil
 }
 
-func (s *Service) Login(email, password string) (*domain.TokenResponse, error) {
-	user, err := s.userRepository.GetUserByEmail(email)
+func (s *Service) Login(ctx context.Context, email, password string) (*domain.TokenResponse, error) {
+	user, err := s.userRepository.GetUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +105,7 @@ func (s *Service) Login(email, password string) (*domain.TokenResponse, error) {
 
 	refreshToken := s.newRefreshToken(user.ID, tokens.RefreshToken)
 
-	err = s.refreshTokenRepository.CreateRefreshToken(refreshToken)
+	err = s.refreshTokenRepository.CreateRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -116,8 +117,8 @@ func (s *Service) Login(email, password string) (*domain.TokenResponse, error) {
 	}, nil
 }
 
-func (s *Service) Refresh(token string) (*domain.TokenResponse, error) {
-	refreshToken, err := s.refreshTokenRepository.FindRefreshTokenByToken(token)
+func (s *Service) Refresh(ctx context.Context, token string) (*domain.TokenResponse, error) {
+	refreshToken, err := s.refreshTokenRepository.FindRefreshTokenByToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (s *Service) Refresh(token string) (*domain.TokenResponse, error) {
 	}
 
 	userID := refreshToken.UserID
-	user, err := s.userRepository.GetUserById(userID)
+	user, err := s.userRepository.GetUserById(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -143,14 +144,14 @@ func (s *Service) Refresh(token string) (*domain.TokenResponse, error) {
 		return nil, err
 	}
 
-	err = s.refreshTokenRepository.DeleteRefreshTokenById(refreshToken.ID)
+	err = s.refreshTokenRepository.DeleteRefreshTokenById(ctx, refreshToken.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	newRefreshToken := s.newRefreshToken(user.ID, tokens.RefreshToken)
 
-	err = s.refreshTokenRepository.CreateRefreshToken(newRefreshToken)
+	err = s.refreshTokenRepository.CreateRefreshToken(ctx, newRefreshToken)
 	if err != nil {
 		return nil, err
 	}
@@ -162,8 +163,8 @@ func (s *Service) Refresh(token string) (*domain.TokenResponse, error) {
 	}, nil
 }
 
-func (s *Service) GetMe(userID uuid.UUID) (*domain.UserResponse, error) {
-	user, err := s.userRepository.GetUserById(userID)
+func (s *Service) GetMe(ctx context.Context, userID uuid.UUID) (*domain.UserResponse, error) {
+	user, err := s.userRepository.GetUserById(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

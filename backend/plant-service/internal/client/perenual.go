@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -25,7 +26,7 @@ func NewPerenualClient(timeout time.Duration, key string) *PerenualClient {
 	return &PerenualClient{client: &http.Client{Timeout: timeout}, key: key}
 }
 
-func (c *PerenualClient) GetPlants(page int, q string) (*SpeciesListResponse, error) {
+func (c *PerenualClient) GetPlants(ctx context.Context, page int, q string) (*SpeciesListResponse, error) {
 	params := url.Values{}
 	params.Set("key", c.key)
 	params.Set("indoor", "1")
@@ -36,7 +37,7 @@ func (c *PerenualClient) GetPlants(page int, q string) (*SpeciesListResponse, er
 	fullURL := perenualBaseUrl + perenualSpeciesListPath + "?" + params.Encode()
 
 	var plants SpeciesListResponse
-	err := c.getRequest(fullURL, &plants)
+	err := c.getRequest(ctx, fullURL, &plants)
 	if err != nil {
 		return nil, err
 	}
@@ -44,11 +45,11 @@ func (c *PerenualClient) GetPlants(page int, q string) (*SpeciesListResponse, er
 	return &plants, nil
 }
 
-func (c *PerenualClient) GetPlantDetails(id int) (*SpeciesDetailResponse, error) {
+func (c *PerenualClient) GetPlantDetails(ctx context.Context, id int) (*SpeciesDetailResponse, error) {
 	fullURL := perenualBaseUrl + fmt.Sprintf(perenualDetailsPath, id) + "?key=" + c.key
 
 	var plantDetail SpeciesDetailResponse
-	err := c.getRequest(fullURL, &plantDetail)
+	err := c.getRequest(ctx, fullURL, &plantDetail)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +57,13 @@ func (c *PerenualClient) GetPlantDetails(id int) (*SpeciesDetailResponse, error)
 	return &plantDetail, nil
 }
 
-func (c *PerenualClient) getRequest(url string, response any) error {
-	resp, err := c.client.Get(url)
+func (c *PerenualClient) getRequest(ctx context.Context, rawURL string, response any) error {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, rawURL, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -67,10 +73,5 @@ func (c *PerenualClient) getRequest(url string, response any) error {
 		return errors.New(resp.Status)
 	}
 
-	err = json.NewDecoder(resp.Body).Decode(response)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return json.NewDecoder(resp.Body).Decode(response)
 }

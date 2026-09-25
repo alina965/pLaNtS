@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -9,8 +10,8 @@ import (
 )
 
 type PlantsService interface {
-	GetSpecies(page int, query string) (*domain.SpeciesList, error)
-	GetSpeciesDetails(speciesID int) (*domain.SpeciesDetails, error)
+	GetSpecies(ctx context.Context, page int, query string) (*domain.SpeciesList, error)
+	GetSpeciesDetails(ctx context.Context, speciesID int) (*domain.SpeciesDetails, error)
 }
 
 type PlantsHandler struct {
@@ -43,7 +44,7 @@ func (h *PlantsHandler) GetSpeciesList(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query().Get("query")
 
-	species, err := h.service.GetSpecies(page, query)
+	species, err := h.service.GetSpecies(r.Context(), page, query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -61,7 +62,7 @@ func (h *PlantsHandler) GetSpeciesDetails(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	speciesDetails, err := h.service.GetSpeciesDetails(id)
+	speciesDetails, err := h.service.GetSpeciesDetails(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
