@@ -21,7 +21,7 @@ func NewUserPlantsService(plantRepo *repository.UserPlantsRepository, eventsRepo
 	return &UserPlantsService{plantRepo: plantRepo, eventsRepo: eventsRepo, db: db}
 }
 
-func (s *UserPlantsService) CreatePlant(speciesID int, userID uuid.UUID, name string, interval int, last time.Time) (*domain.UserPlant, error) {
+func (s *UserPlantsService) CreatePlant(ctx context.Context, speciesID int, userID uuid.UUID, name string, interval int, last time.Time) (*domain.UserPlant, error) {
 	if speciesID <= 0 {
 		return nil, errors.New("invalid speciesID")
 	}
@@ -51,33 +51,27 @@ func (s *UserPlantsService) CreatePlant(speciesID int, userID uuid.UUID, name st
 		UpdatedAt:            &now,
 	}
 
-	err := s.plantRepo.CreateUserPlant(&plant)
-	if err != nil {
+	if err := s.plantRepo.CreateUserPlant(ctx, &plant); err != nil {
 		return nil, err
 	}
 
 	return &plant, nil
 }
 
-func (s *UserPlantsService) GetPlantByID(id uuid.UUID) (*domain.UserPlant, error) {
+func (s *UserPlantsService) GetPlantByID(ctx context.Context, id uuid.UUID) (*domain.UserPlant, error) {
 	if id == uuid.Nil {
 		return nil, errors.New("invalid ID")
 	}
 
-	plant, err := s.plantRepo.GetUserPlantByID(id)
-	if err != nil {
-		return nil, err
-	}
-
-	return plant, nil
+	return s.plantRepo.GetUserPlantByID(ctx, id)
 }
 
-func (s *UserPlantsService) GetPlantsByUserID(userID uuid.UUID) (*domain.UserPlantsResponse, error) {
+func (s *UserPlantsService) GetPlantsByUserID(ctx context.Context, userID uuid.UUID) (*domain.UserPlantsResponse, error) {
 	if userID == uuid.Nil {
 		return nil, errors.New("invalid user ID")
 	}
 
-	plants, err := s.plantRepo.GetUserPlantsByUserID(userID)
+	plants, err := s.plantRepo.GetUserPlantsByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -85,15 +79,16 @@ func (s *UserPlantsService) GetPlantsByUserID(userID uuid.UUID) (*domain.UserPla
 	return &domain.UserPlantsResponse{UserPlantsList: plants}, nil
 }
 
-func (s *UserPlantsService) UpdatePlant(id uuid.UUID, userID uuid.UUID, name *string, interval *int, status *string, nextWatering *time.Time) error {
+func (s *UserPlantsService) UpdatePlant(ctx context.Context, id uuid.UUID, userID uuid.UUID, name *string, interval *int, status *string, nextWatering *time.Time) error {
 	if userID == uuid.Nil || id == uuid.Nil {
 		return errors.New("invalid id")
 	}
 
-	if status == nil || (*status != "ok" && *status != "due" && *status != "overdue") {
+	if status != nil && *status != "ok" && *status != "due" && *status != "overdue" {
+		return errors.New("invalid status")
 	}
 
-	plant, err := s.plantRepo.GetUserPlantByID(id)
+	plant, err := s.plantRepo.GetUserPlantByID(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -114,32 +109,24 @@ func (s *UserPlantsService) UpdatePlant(id uuid.UUID, userID uuid.UUID, name *st
 		plant.NextWateringAt = *nextWatering
 	}
 
-	return s.plantRepo.UpdateUserPlant(plant)
+	return s.plantRepo.UpdateUserPlant(ctx, plant)
 }
 
-func (s *UserPlantsService) DeletePlant(id uuid.UUID, userID uuid.UUID) error {
+func (s *UserPlantsService) DeletePlant(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	if id == uuid.Nil || userID == uuid.Nil {
 		return errors.New("invalid ID")
 	}
 
-	err := s.plantRepo.DeleteUserPlantByID(id, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.plantRepo.DeleteUserPlantByID(ctx, id, userID)
 }
 
-func (s *UserPlantsService) MarkWatered(id uuid.UUID, userID uuid.UUID, last time.Time, next time.Time) error {
+func (s *UserPlantsService) MarkWatered(ctx context.Context, id uuid.UUID, userID uuid.UUID, last time.Time, next time.Time) error {
 	if id == uuid.Nil || userID == uuid.Nil {
 		return errors.New("invalid ID")
 	}
 	if last.IsZero() || next.IsZero() || last.After(next) || last.After(time.Now()) {
 		return errors.New("invalid time")
 	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
@@ -165,8 +152,8 @@ func (s *UserPlantsService) MarkWatered(id uuid.UUID, userID uuid.UUID, last tim
 	return tx.Commit(ctx)
 }
 
-func (s *UserPlantsService) GetWateringEvents(plantID uuid.UUID, userID uuid.UUID) ([]*domain.WateringEvent, error) {
-	plant, err := s.plantRepo.GetUserPlantByID(plantID)
+func (s *UserPlantsService) GetWateringEvents(ctx context.Context, plantID uuid.UUID, userID uuid.UUID) ([]*domain.WateringEvent, error) {
+	plant, err := s.plantRepo.GetUserPlantByID(ctx, plantID)
 	if err != nil {
 		return nil, err
 	}
@@ -175,5 +162,20 @@ func (s *UserPlantsService) GetWateringEvents(plantID uuid.UUID, userID uuid.UUI
 		return nil, repository.ErrUserPlantNotFound
 	}
 
-	return s.eventsRepo.GetWateringEventsByUserPlantID(plantID)
+	return s.eventsRepo.GetWateringEventsByUserPlantID(ctx, plantID)
+}
+
+func (s *UserPlantsService) ListNeedingWater(ctx context.Context) ([]*domain.UserPlant, error) {
+	return s.plantRepo.ListNeedingWater(ctx, time.Now())
+}
+
+func (s *UserPlantsService) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
+	if id == uuid.Nil {
+		return errors.New("invalid ID")
+	}
+	if status != "ok" && status != "due" && status != "overdue" {
+		return errors.New("invalid status")
+	}
+
+	return s.plantRepo.UpdateStatus(ctx, id, status)
 }

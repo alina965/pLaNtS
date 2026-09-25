@@ -45,10 +45,7 @@ func scanUserPlant(row pgx.Row) (*domain.UserPlant, error) {
 	return plant, nil
 }
 
-func (r *UserPlantsRepository) CreateUserPlant(plant *domain.UserPlant) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *UserPlantsRepository) CreateUserPlant(ctx context.Context, plant *domain.UserPlant) error {
 	_, err := r.db.Exec(ctx, `
 	INSERT INTO user_plants (
 		id,
@@ -76,10 +73,7 @@ func (r *UserPlantsRepository) CreateUserPlant(plant *domain.UserPlant) error {
 	return err
 }
 
-func (r *UserPlantsRepository) GetUserPlantByID(id uuid.UUID) (*domain.UserPlant, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *UserPlantsRepository) GetUserPlantByID(ctx context.Context, id uuid.UUID) (*domain.UserPlant, error) {
 	row := r.db.QueryRow(ctx, `
 		SELECT`+userPlantColumns+`
 		FROM user_plants
@@ -96,10 +90,7 @@ func (r *UserPlantsRepository) GetUserPlantByID(id uuid.UUID) (*domain.UserPlant
 	return plant, nil
 }
 
-func (r *UserPlantsRepository) GetUserPlantsByUserID(userID uuid.UUID) ([]*domain.UserPlant, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *UserPlantsRepository) GetUserPlantsByUserID(ctx context.Context, userID uuid.UUID) ([]*domain.UserPlant, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT`+userPlantColumns+`
 		FROM user_plants
@@ -121,10 +112,7 @@ func (r *UserPlantsRepository) GetUserPlantsByUserID(userID uuid.UUID) ([]*domai
 	return userPlants, rows.Err()
 }
 
-func (r *UserPlantsRepository) UpdateUserPlant(plant *domain.UserPlant) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *UserPlantsRepository) UpdateUserPlant(ctx context.Context, plant *domain.UserPlant) error {
 	result, err := r.db.Exec(ctx, `
 		UPDATE user_plants
 		SET
@@ -152,10 +140,7 @@ func (r *UserPlantsRepository) UpdateUserPlant(plant *domain.UserPlant) error {
 	return nil
 }
 
-func (r *UserPlantsRepository) DeleteUserPlantByID(id uuid.UUID, userID uuid.UUID) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *UserPlantsRepository) DeleteUserPlantByID(ctx context.Context, id uuid.UUID, userID uuid.UUID) error {
 	result, err := r.db.Exec(ctx, `
 		DELETE FROM user_plants
 		WHERE id = $1 AND user_id = $2`, id, userID)
@@ -184,6 +169,49 @@ func (r *UserPlantsRepository) MarkWatered(ctx context.Context, db DBTX, plant *
 		time.Now(),
 		plant.ID,
 		plant.UserID,
+	)
+	if err != nil {
+		return err
+	}
+	if result.RowsAffected() == 0 {
+		return ErrUserPlantNotFound
+	}
+
+	return nil
+}
+
+func (r *UserPlantsRepository) ListNeedingWater(ctx context.Context, now time.Time) ([]*domain.UserPlant, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT`+userPlantColumns+`
+		FROM user_plants
+		WHERE next_watering_at <= $1`, now)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	userPlants := make([]*domain.UserPlant, 0)
+	for rows.Next() {
+		plant, err := scanUserPlant(rows)
+		if err != nil {
+			return nil, err
+		}
+		userPlants = append(userPlants, plant)
+	}
+
+	return userPlants, rows.Err()
+}
+
+func (r *UserPlantsRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status string) error {
+	result, err := r.db.Exec(ctx, `
+		UPDATE user_plants
+		SET
+			status = $1,
+			updated_at = $2
+		WHERE id = $3`,
+		status,
+		time.Now(),
+		id,
 	)
 	if err != nil {
 		return err

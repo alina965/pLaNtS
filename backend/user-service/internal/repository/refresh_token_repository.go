@@ -19,20 +19,14 @@ func NewRefreshTokenRepository(db *pgxpool.Pool) *RefreshTokenRepository {
 	return &RefreshTokenRepository{db: db}
 }
 
-func (r *RefreshTokenRepository) CreateRefreshToken(token *domain.RefreshToken) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *RefreshTokenRepository) CreateRefreshToken(ctx context.Context, token *domain.RefreshToken) error {
 	_, err := r.db.Exec(ctx, "INSERT INTO refresh_tokens (id, token, expires_at, is_revoked, user_id, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
 		token.ID, token.Token, token.ExpiresAt, token.IsRevoked, token.UserID, time.Now())
 
 	return err
 }
 
-func (r *RefreshTokenRepository) FindRefreshTokenByToken(token string) (*domain.RefreshToken, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *RefreshTokenRepository) FindRefreshTokenByToken(ctx context.Context, token string) (*domain.RefreshToken, error) {
 	row := r.db.QueryRow(ctx, "SELECT * FROM refresh_tokens WHERE token = $1", token)
 
 	var refreshToken domain.RefreshToken
@@ -46,10 +40,7 @@ func (r *RefreshTokenRepository) FindRefreshTokenByToken(token string) (*domain.
 	return &refreshToken, nil
 }
 
-func (r *RefreshTokenRepository) DeleteRefreshTokenById(id uuid.UUID) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *RefreshTokenRepository) DeleteRefreshTokenById(ctx context.Context, id uuid.UUID) error {
 	_, err := r.db.Exec(ctx, "DELETE FROM refresh_tokens WHERE id = $1", id)
 
 	return err

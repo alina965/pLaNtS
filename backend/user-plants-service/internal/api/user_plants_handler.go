@@ -33,7 +33,7 @@ func (h *UserPlantsHandler) CreateUserPlant(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	plant, err := h.service.CreatePlant(req.SpeciesID, userID, req.Name, req.WateringIntervalDays, req.LastWateredAt)
+	plant, err := h.service.CreatePlant(r.Context(), req.SpeciesID, userID, req.Name, req.WateringIntervalDays, req.LastWateredAt)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -49,7 +49,7 @@ func (h *UserPlantsHandler) GetUserPlants(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	plants, err := h.service.GetPlantsByUserID(userID)
+	plants, err := h.service.GetPlantsByUserID(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -71,7 +71,7 @@ func (h *UserPlantsHandler) GetUserPlantByID(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	plant, err := h.service.GetPlantByID(id)
+	plant, err := h.service.GetPlantByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -103,7 +103,7 @@ func (h *UserPlantsHandler) UpdateUserPlant(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = h.service.UpdatePlant(id, userID, req.Name, req.WateringIntervalDays, req.Status, req.NextWateringAt)
+	err = h.service.UpdatePlant(r.Context(), id, userID, req.Name, req.WateringIntervalDays, req.Status, req.NextWateringAt)
 	if err != nil {
 		writeServiceError(w, err)
 		return
@@ -125,7 +125,7 @@ func (h *UserPlantsHandler) DeleteUserPlant(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := h.service.DeletePlant(id, userID); err != nil {
+	if err := h.service.DeletePlant(r.Context(), id, userID); err != nil {
 		writeServiceError(w, err)
 		return
 	}
@@ -154,7 +154,7 @@ func (h *UserPlantsHandler) MarkWatered(w http.ResponseWriter, r *http.Request) 
 		}
 	}
 
-	plant, err := h.service.GetPlantByID(id)
+	plant, err := h.service.GetPlantByID(r.Context(), id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -170,7 +170,7 @@ func (h *UserPlantsHandler) MarkWatered(w http.ResponseWriter, r *http.Request) 
 	}
 	next := wateredAt.AddDate(0, 0, plant.WateringIntervalDays)
 
-	if err := h.service.MarkWatered(id, userID, wateredAt, next); err != nil {
+	if err := h.service.MarkWatered(r.Context(), id, userID, wateredAt, next); err != nil {
 		writeServiceError(w, err)
 		return
 	}
@@ -191,13 +191,49 @@ func (h *UserPlantsHandler) GetWateringEvents(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	events, err := h.service.GetWateringEvents(id, userID)
+	events, err := h.service.GetWateringEvents(r.Context(), id, userID)
 	if err != nil {
 		writeServiceError(w, err)
 		return
 	}
 
 	writeJSON(w, http.StatusOK, events)
+}
+
+func (h *UserPlantsHandler) ListNeedingWater(w http.ResponseWriter, r *http.Request) {
+	plants, err := h.service.ListNeedingWater(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, plants)
+}
+
+func (h *UserPlantsHandler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
+	id, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		http.Error(w, "invalid plant id", http.StatusBadRequest)
+		return
+	}
+
+	var req domain.UpdateStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if req.Status == nil {
+		http.Error(w, "status is required", http.StatusBadRequest)
+		return
+	}
+	err = h.service.UpdateStatus(r.Context(), id, *req.Status)
+	if err != nil {
+		writeServiceError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func userIDFromRequest(r *http.Request) (uuid.UUID, bool) {

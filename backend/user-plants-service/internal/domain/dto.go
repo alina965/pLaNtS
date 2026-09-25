@@ -23,3 +23,7 @@ type UpdateUserPlantRequest struct {
 type MarkWateredRequest struct {
 	WateredAt *time.Time `json:"wateredAt"`
 }
+
+type UpdateStatusRequest struct {
+	Status *string `json:"status"`
+}

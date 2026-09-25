@@ -30,7 +30,9 @@ func New(cfg *config.Config) (*App, error) {
 	plantService := user_plant.NewUserPlantsService(plantRepo, eventsRepo, db)
 	plantsHandler := api.NewUserPlantsHandler(plantService)
 	jwtService := jwt.NewService([]byte(cfg.JwtSecret))
+
 	auth := api.AuthMiddleware(jwtService)
+	internal := api.InternalAPIMiddleware(cfg.InternalAPIKey)
 
 	mux := http.NewServeMux()
 	mux.Handle("POST /user-plants", auth(http.HandlerFunc(plantsHandler.CreateUserPlant)))
@@ -40,6 +42,9 @@ func New(cfg *config.Config) (*App, error) {
 	mux.Handle("DELETE /user-plants/{id}", auth(http.HandlerFunc(plantsHandler.DeleteUserPlant)))
 	mux.Handle("POST /user-plants/{id}/water", auth(http.HandlerFunc(plantsHandler.MarkWatered)))
 	mux.Handle("GET /user-plants/{id}/watering-events", auth(http.HandlerFunc(plantsHandler.GetWateringEvents)))
+
+	mux.Handle("GET /internal/user-plants/needing-water", internal(http.HandlerFunc(plantsHandler.ListNeedingWater)))
+	mux.Handle("PATCH /internal/user-plants/{id}/status", internal(http.HandlerFunc(plantsHandler.UpdateStatus)))
 
 	return &App{
 		db: db,

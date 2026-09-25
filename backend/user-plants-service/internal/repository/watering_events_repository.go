@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"time"
 
 	"github.com/alina965/pLaNtS/user-plants-service/internal/domain"
 	"github.com/google/uuid"
@@ -32,10 +31,7 @@ func (r *WateringEventsRepository) CreateWateringEvent(ctx context.Context, db D
 	return err
 }
 
-func (r *WateringEventsRepository) GetWateringEventsByUserPlantID(userPlantID uuid.UUID) ([]*domain.WateringEvent, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
+func (r *WateringEventsRepository) GetWateringEventsByUserPlantID(ctx context.Context, userPlantID uuid.UUID) ([]*domain.WateringEvent, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id, user_plant_id, watered_at, created_at
 		FROM watering_events

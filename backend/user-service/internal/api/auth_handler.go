@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"pLaNtS/internal/domain"
@@ -9,10 +10,10 @@ import (
 )
 
 type AuthService interface {
-	Register(email, password, firstName, lastName string) (*domain.TokenResponse, error)
-	Login(email, password string) (*domain.TokenResponse, error)
-	Refresh(token string) (*domain.TokenResponse, error)
-	GetMe(userID uuid.UUID) (*domain.UserResponse, error)
+	Register(ctx context.Context, email, password, firstName, lastName string) (*domain.TokenResponse, error)
+	Login(ctx context.Context, email, password string) (*domain.TokenResponse, error)
+	Refresh(ctx context.Context, token string) (*domain.TokenResponse, error)
+	GetMe(ctx context.Context, userID uuid.UUID) (*domain.UserResponse, error)
 }
 
 type AuthHandler struct {
@@ -31,7 +32,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Register(req.Email, req.Password, req.FirstName, req.LastName)
+	token, err := h.service.Register(r.Context(), req.Email, req.Password, req.FirstName, req.LastName)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -50,7 +51,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Login(req.Email, req.Password)
+	token, err := h.service.Login(r.Context(), req.Email, req.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -68,7 +69,7 @@ func (h *AuthHandler) Refresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := h.service.Refresh(req.RefreshToken)
+	token, err := h.service.Refresh(r.Context(), req.RefreshToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -91,7 +92,7 @@ func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.service.GetMe(userID)
+	user, err := h.service.GetMe(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
