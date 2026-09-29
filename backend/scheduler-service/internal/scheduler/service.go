@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -11,11 +12,12 @@ import (
 
 type Service struct {
 	location string
-	client   *client.UserPlantsClient
+	plants   *client.UserPlantsClient
+	telegram *client.TelegramClient
 }
 
-func NewService(location string, client *client.UserPlantsClient) *Service {
-	return &Service{location: location, client: client}
+func NewService(location string, plants *client.UserPlantsClient, telegram *client.TelegramClient) *Service {
+	return &Service{location: location, plants: plants, telegram: telegram}
 }
 
 func (s *Service) Setup() (*cron.Cron, error) {
@@ -24,7 +26,7 @@ func (s *Service) Setup() (*cron.Cron, error) {
 		return nil, err
 	}
 	c := cron.New(cron.WithLocation(location))
-	_, err = c.AddFunc("0 9 * * *", s.processDuePlants)
+	_, err = c.AddFunc("* * * * *", s.processDuePlants)
 	if err != nil {
 		return nil, err
 	}
@@ -36,7 +38,7 @@ func (s *Service) processDuePlants() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	plants, err := s.client.ListNeedingWater(ctx)
+	plants, err := s.plants.ListNeedingWater(ctx)
 	if err != nil {
 		log.Printf("list needing water: %v", err)
 		return
@@ -44,18 +46,26 @@ func (s *Service) processDuePlants() {
 
 	for _, plant := range plants {
 		var newStatus string
+		var message string
 		switch plant.Status {
 		case "ok":
 			newStatus = "due"
+			message = fmt.Sprintf("Пора полить растение «%s»", plant.Name)
 		case "due":
 			newStatus = "overdue"
+			message = fmt.Sprintf("Полив просрочен: «%s»", plant.Name)
 		default:
 			continue
 		}
-		if err := s.client.UpdateStatus(ctx, plant.ID, newStatus); err != nil {
+
+		if err := s.plants.UpdateStatus(ctx, plant.ID, newStatus); err != nil {
 			log.Printf("update status %s: %v", plant.ID, err)
 			continue
 		}
-		// TODO: telegram notify
+
+		if err := s.telegram.Notify(ctx, plant.UserID, message); err != nil {
+			log.Printf("notify user %s about plant %s: %v", plant.UserID, plant.ID, err)
+			continue
+		}
 	}
 }

@@ -12,6 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/user-service/migrations/000001_init.sql:/docker-entrypoint-initdb.d/000001_init.sql:ro
       - ./backend/user-plants-service/migrations/000001_init.sql:/docker-entrypoint-initdb.d/000002_user_plants.sql:ro
+      - ./backend/telegram-service/migrations/000001_init.sql:/docker-entrypoint-initdb.d/000003_telegram.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
       interval: 5s
@@ -65,6 +66,45 @@ services:
       ADDR: ":8081"
       TIMEOUT: "10s"
       PERENUAL_KEY: ${PERENUAL_KEY}
+    restart: unless-stopped
+
+  telegram-service:
+    build:
+      context: ./backend/telegram-service
+      dockerfile: Dockerfile
+    container_name: plants-telegram-service
+    ports:
+      - "8084:8084"
+    environment:
+      ADDR: ":8084"
+      DATABASE_URL: postgres://myuser:mypassword@postgres:5432/mydatabase?sslmode=disable
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME}
+      JWT_SECRET: ${JWT_SECRET:-change-me}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal}
+      TIMEOUT: 40s
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler-service:
+    build:
+      context: ./backend/scheduler-service
+      dockerfile: Dockerfile
+    container_name: plants-scheduler-service
+    ports:
+      - "8083:8083"
+    environment:
+      ADDR: ":8083"
+      USER_PLANTS_URL: http://user-plants-service:8082
+      TELEGRAM_URL: http://telegram-service:8084
+      TIMEOUT: "30"
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:-change-me-internal}
+      CRON_LOCATION: ${CRON_LOCATION:-Europe/Moscow}
+    depends_on:
+      - user-plants-service
+      - telegram-service
     restart: unless-stopped
 
 volumes:

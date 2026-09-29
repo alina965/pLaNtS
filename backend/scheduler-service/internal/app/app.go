@@ -22,7 +22,8 @@ type App struct {
 
 func New(cfg *config.Config) (*App, error) {
 	userPlantsClient := client.NewUserPlantsClient(cfg.UserPlantsURL, cfg.Timeout, cfg.InternalAPIKey)
-	schedulerService := scheduler.NewService(cfg.Location, userPlantsClient)
+	telegramClient := client.NewTelegramClient(cfg.TelegramURL, cfg.Timeout, cfg.InternalAPIKey)
+	schedulerService := scheduler.NewService(cfg.Location, userPlantsClient, telegramClient)
 
 	c, err := schedulerService.Setup()
 	if err != nil {

@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"log"
-	_ "time/tzdata"
 
-	"github.com/alina965/pLaNtS/scheduler-service/internal/app"
-	"github.com/alina965/pLaNtS/scheduler-service/internal/config"
+	"github.com/alina965/pLaNtS/telegram-service/internal/app"
+	"github.com/alina965/pLaNtS/telegram-service/internal/config"
 )
 
 func main() {

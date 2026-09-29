@@ -18,6 +18,7 @@ const (
 type Config struct {
 	Addr           string
 	UserPlantsURL  string
+	TelegramURL    string
 	Timeout        time.Duration
 	InternalAPIKey string
 	Location       string
@@ -34,6 +35,11 @@ func New(path string) (*Config, error) {
 	userPlantsURL := os.Getenv("USER_PLANTS_URL")
 	if userPlantsURL == "" {
 		return nil, errors.New("USER_PLANTS_URL is required")
+	}
+
+	telegramURL := os.Getenv("TELEGRAM_URL")
+	if telegramURL == "" {
+		return nil, errors.New("TELEGRAM_URL is required")
 	}
 
 	var timeout int
@@ -62,6 +68,7 @@ func New(path string) (*Config, error) {
 	return &Config{
 		Addr:           addr,
 		UserPlantsURL:  userPlantsURL,
+		TelegramURL:    telegramURL,
 		Timeout:        time.Duration(timeout) * time.Second,
 		InternalAPIKey: internalAPIKey,
 		Location:       location,
