@@ -1,0 +1,77 @@
+.wrapper {
+  width: min(100%, 360px);
+  margin: -6px auto 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 20px 22px rgba(25, 61, 61, 0.22));
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.headShake {
+  transform-origin: 150px 155px;
+  animation: headNo 0.8s ease-in-out;
+}
+
+.leafShake {
+  transform-origin: 150px 220px;
+  animation: leafNo 0.8s ease-in-out;
+}
+
+@keyframes headNo {
+  0% {
+    transform: rotate(0deg);
+  }
+  20% {
+    transform: rotate(-10deg);
+  }
+  40% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(-8deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes leafNo {
+  0% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-12deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  75% {
+    transform: rotate(-8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@media (max-width: 920px) {
+  .wrapper {
+    width: 220px;
+    margin-top: -20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .headShake,
+  .leafShake {
+    animation: none;
+  }
+}

@@ -1,0 +1,376 @@
+{
+  "info": {
+    "name": "pLaNtS API",
+    "description": "E2E collection for local microservices.\n\n1. Select environment **pLaNtS Local**\n2. Run folder **1. Auth** (Register or Login)\n3. Continue with plants / user-plants / telegram\n\nScripts auto-save access_token, refresh_token, user_id, plant_id.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "last_watered_at", "value": "2026-09-28T10:00:00Z" }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Scheduler health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{scheduler_base}}/health"
+          }
+        },
+        {
+          "name": "Telegram health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{telegram_base}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Auth (user-service :8080)",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('access_token', data.access_token);",
+                  "  pm.environment.set('refresh_token', data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"first_name\": \"Test\",\n  \"last_name\": \"User\"\n}"
+            },
+            "url": "{{user_base}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('access_token', data.access_token);",
+                  "  pm.environment.set('refresh_token', data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+            },
+            "url": "{{user_base}}/auth/login"
+          }
+        },
+        {
+          "name": "Refresh",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('access_token', data.access_token);",
+                  "  pm.environment.set('refresh_token', data.refresh_token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{user_base}}/auth/refresh"
+          }
+        },
+        {
+          "name": "Get Me",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('user_id', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{user_base}}/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Plants catalog (plant-service :8081)",
+      "item": [
+        {
+          "name": "List plants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{plants_base}}/plants?page=1&query=",
+              "host": ["{{plants_base}}"],
+              "path": ["plants"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "query", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get plant details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{plants_base}}/plants/{{species_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. User plants (:8082)",
+      "item": [
+        {
+          "name": "Create user plant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('plant_id', data.id);",
+                  "  pm.environment.set('user_id', data.userId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"speciesId\": {{species_id}},\n  \"name\": \"Grigory\",\n  \"wateringIntervalDays\": 7,\n  \"lastWateredAt\": \"{{last_watered_at}}\"\n}"
+            },
+            "url": "{{user_plants_base}}/user-plants"
+          }
+        },
+        {
+          "name": "List my plants",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{user_plants_base}}/user-plants"
+          }
+        },
+        {
+          "name": "Get plant by id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{user_plants_base}}/user-plants/{{plant_id}}"
+          }
+        },
+        {
+          "name": "Update plant",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Grigory Updated\"\n}"
+            },
+            "url": "{{user_plants_base}}/user-plants/{{plant_id}}"
+          }
+        },
+        {
+          "name": "Water plant",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{user_plants_base}}/user-plants/{{plant_id}}/water"
+          }
+        },
+        {
+          "name": "Get watering events",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{user_plants_base}}/user-plants/{{plant_id}}/watering-events"
+          }
+        },
+        {
+          "name": "Delete plant",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{user_plants_base}}/user-plants/{{plant_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Internal user-plants (for scheduler)",
+      "item": [
+        {
+          "name": "List needing water",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Internal-Key", "value": "{{internal_api_key}}" }
+            ],
+            "url": "{{user_plants_base}}/internal/user-plants/needing-water"
+          }
+        },
+        {
+          "name": "Update status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "X-Internal-Key", "value": "{{internal_api_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"due\"\n}"
+            },
+            "url": "{{user_plants_base}}/internal/user-plants/{{plant_id}}/status"
+          }
+        },
+        {
+          "name": "List needing water WITHOUT key (expect 401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{user_plants_base}}/internal/user-plants/needing-water"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Telegram (:8084)",
+      "item": [
+        {
+          "name": "Create link",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const data = pm.response.json();",
+                  "  pm.environment.set('telegram_link_url', data.linkUrl);",
+                  "  console.log('Open in Telegram:', data.linkUrl);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": "{{telegram_base}}/telegram/link",
+            "description": "After response, open linkUrl in Telegram and press Start."
+          }
+        },
+        {
+          "name": "Notify user",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Internal-Key", "value": "{{internal_api_key}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"text\": \"Test notify from Postman\"\n}"
+            },
+            "url": "{{telegram_base}}/notify",
+            "description": "Requires telegram linked via /start. Expect 204."
+          }
+        },
+        {
+          "name": "Notify WITHOUT key (expect 401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"text\": \"should fail\"\n}"
+            },
+            "url": "{{telegram_base}}/notify"
+          }
+        }
+      ]
+    }
+  ]
+}

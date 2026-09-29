@@ -1,0 +1,60 @@
+package repository
+
+import (
+	"context"
+
+	"github.com/alina965/pLaNtS/user-plants-service/internal/domain"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+type WateringEventsRepository struct {
+	db *pgxpool.Pool
+}
+
+func NewWateringEventsRepository(db *pgxpool.Pool) *WateringEventsRepository {
+	return &WateringEventsRepository{db: db}
+}
+
+func (r *WateringEventsRepository) CreateWateringEvent(ctx context.Context, db DBTX, event *domain.WateringEvent) error {
+	_, err := db.Exec(ctx, `
+	INSERT INTO watering_events (
+		id,
+		user_plant_id,
+		watered_at,
+		created_at
+	) VALUES ($1, $2, $3, $4)`,
+		event.ID,
+		event.UserPlantID,
+		event.WateredAt,
+		event.CreatedAt)
+	return err
+}
+
+func (r *WateringEventsRepository) GetWateringEventsByUserPlantID(ctx context.Context, userPlantID uuid.UUID) ([]*domain.WateringEvent, error) {
+	rows, err := r.db.Query(ctx, `
+		SELECT id, user_plant_id, watered_at, created_at
+		FROM watering_events
+		WHERE user_plant_id = $1
+		ORDER BY watered_at DESC`, userPlantID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	events := make([]*domain.WateringEvent, 0)
+	for rows.Next() {
+		event := &domain.WateringEvent{}
+		if err := rows.Scan(
+			&event.ID,
+			&event.UserPlantID,
+			&event.WateredAt,
+			&event.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		events = append(events, event)
+	}
+
+	return events, rows.Err()
+}

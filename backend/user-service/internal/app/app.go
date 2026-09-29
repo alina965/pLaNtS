@@ -4,12 +4,13 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"pLaNtS/internal/api"
-	"pLaNtS/internal/auth"
-	"pLaNtS/internal/config"
-	"pLaNtS/internal/jwt"
-	"pLaNtS/internal/repository"
-	"pLaNtS/internal/security"
+
+	"github.com/alina965/pLaNtS/user-service/internal/api"
+	"github.com/alina965/pLaNtS/user-service/internal/auth"
+	"github.com/alina965/pLaNtS/user-service/internal/config"
+	"github.com/alina965/pLaNtS/user-service/internal/jwt"
+	"github.com/alina965/pLaNtS/user-service/internal/repository"
+	"github.com/alina965/pLaNtS/user-service/internal/security"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
