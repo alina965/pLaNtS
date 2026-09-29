@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"errors"
-	"pLaNtS/internal/domain"
 
 	"github.com/alina965/pLaNtS/user-service/internal/domain"
 
