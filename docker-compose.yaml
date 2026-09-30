@@ -55,6 +55,7 @@ services:
         condition: service_healthy
       user-service:
         condition: service_started
+
   plants-service:
     build:
       context: ./backend/plant-service
@@ -66,7 +67,11 @@ services:
       ADDR: ":8081"
       TIMEOUT: "10s"
       PERENUAL_KEY: ${PERENUAL_KEY}
+      REDIS_ADDR: "redis:6379"
     restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
 
   telegram-service:
     build:
@@ -107,5 +112,21 @@ services:
       - telegram-service
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   postgres_data:
+  redis_data:
