@@ -10,18 +10,22 @@ import (
 )
 
 const (
-	defaultAddress  = ":8083"
-	defaultTimeout  = 30
-	defaultLocation = "Europe/Moscow"
+	defaultAddress            = ":8083"
+	defaultTimeout            = 30
+	defaultLocation           = "Europe/Moscow"
+	defaultKafkaBrokers       = "redpanda:9092"
+	defaultKafkaTopicWatering = "watering.notify"
 )
 
 type Config struct {
-	Addr           string
-	UserPlantsURL  string
-	TelegramURL    string
-	Timeout        time.Duration
-	InternalAPIKey string
-	Location       string
+	Addr               string
+	UserPlantsURL      string
+	TelegramURL        string
+	Timeout            time.Duration
+	InternalAPIKey     string
+	Location           string
+	KafkaBrokers       string
+	KafkaTopicWatering string
 }
 
 func New(path string) (*Config, error) {
@@ -65,12 +69,24 @@ func New(path string) (*Config, error) {
 		location = defaultLocation
 	}
 
+	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
+	if kafkaBrokers == "" {
+		kafkaBrokers = defaultKafkaBrokers
+	}
+
+	kafkaTopicWatering := os.Getenv("KAFKA_TOPIC_WATERING")
+	if kafkaTopicWatering == "" {
+		kafkaTopicWatering = defaultKafkaTopicWatering
+	}
+
 	return &Config{
-		Addr:           addr,
-		UserPlantsURL:  userPlantsURL,
-		TelegramURL:    telegramURL,
-		Timeout:        time.Duration(timeout) * time.Second,
-		InternalAPIKey: internalAPIKey,
-		Location:       location,
+		Addr:               addr,
+		UserPlantsURL:      userPlantsURL,
+		TelegramURL:        telegramURL,
+		Timeout:            time.Duration(timeout) * time.Second,
+		InternalAPIKey:     internalAPIKey,
+		Location:           location,
+		KafkaBrokers:       kafkaBrokers,
+		KafkaTopicWatering: kafkaTopicWatering,
 	}, nil
 }

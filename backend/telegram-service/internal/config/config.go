@@ -9,18 +9,24 @@ import (
 )
 
 const (
-	defaultAddress = ":8084"
-	defaultTimeout = 40 * time.Second
+	defaultAddress            = ":8084"
+	defaultTimeout            = 40 * time.Second
+	defaultKafkaBrokers       = "redpanda:9092"
+	defaultKafkaTopicWatering = "watering.notify"
+	defaultKafkaGroupID       = "telegram-notifier"
 )
 
 type Config struct {
-	Addr           string
-	Token          string
-	BotUsername    string
-	DatabaseURL    string
-	JwtSecret      string
-	InternalAPIKey string
-	Timeout        time.Duration
+	Addr               string
+	Token              string
+	BotUsername        string
+	DatabaseURL        string
+	JwtSecret          string
+	InternalAPIKey     string
+	Timeout            time.Duration
+	KafkaBrokers       string
+	KafkaTopicWatering string
+	KafkaGroupID       string
 }
 
 func New(path string) (*Config, error) {
@@ -65,13 +71,31 @@ func New(path string) (*Config, error) {
 		timeout = d
 	}
 
+	kafkaBrokers := os.Getenv("KAFKA_BROKERS")
+	if kafkaBrokers == "" {
+		kafkaBrokers = defaultKafkaBrokers
+	}
+
+	kafkaTopicWatering := os.Getenv("KAFKA_TOPIC_WATERING")
+	if kafkaTopicWatering == "" {
+		kafkaTopicWatering = defaultKafkaTopicWatering
+	}
+
+	kafkaGroupID := os.Getenv("KAFKA_GROUP_ID")
+	if kafkaGroupID == "" {
+		kafkaGroupID = defaultKafkaGroupID
+	}
+
 	return &Config{
-		Addr:           addr,
-		Token:          token,
-		BotUsername:    botUsername,
-		DatabaseURL:    databaseURL,
-		JwtSecret:      jwtSecret,
-		InternalAPIKey: internalAPIKey,
-		Timeout:        timeout,
+		Addr:               addr,
+		Token:              token,
+		BotUsername:        botUsername,
+		DatabaseURL:        databaseURL,
+		JwtSecret:          jwtSecret,
+		InternalAPIKey:     internalAPIKey,
+		Timeout:            timeout,
+		KafkaBrokers:       kafkaBrokers,
+		KafkaTopicWatering: kafkaTopicWatering,
+		KafkaGroupID:       kafkaGroupID,
 	}, nil
 }
