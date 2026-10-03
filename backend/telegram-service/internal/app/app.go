@@ -13,6 +13,7 @@ import (
 	"github.com/alina965/pLaNtS/telegram-service/internal/client"
 	"github.com/alina965/pLaNtS/telegram-service/internal/config"
 	"github.com/alina965/pLaNtS/telegram-service/internal/jwt"
+	"github.com/alina965/pLaNtS/telegram-service/internal/kafka"
 	"github.com/alina965/pLaNtS/telegram-service/internal/repository"
 	"github.com/alina965/pLaNtS/telegram-service/internal/telegram"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -22,6 +23,7 @@ type App struct {
 	db         *pgxpool.Pool
 	server     *http.Server
 	cancelPoll context.CancelFunc
+	consumer   *kafka.WateringConsumer
 }
 
 func New(cfg *config.Config) (*App, error) {
@@ -34,6 +36,7 @@ func New(cfg *config.Config) (*App, error) {
 	repo := repository.NewTelegramLinksRepository(db)
 	bot := client.NewBotClient(cfg.Token, cfg.Timeout)
 	service := telegram.NewService(repo, bot, cfg.BotUsername)
+	consumer := kafka.NewWateringConsumer(cfg.KafkaBrokers, cfg.KafkaTopicWatering, cfg.KafkaGroupID, service)
 	handler := api.NewTelegramHandler(service)
 	jwtService := jwt.NewService([]byte(cfg.JwtSecret))
 
@@ -50,6 +53,7 @@ func New(cfg *config.Config) (*App, error) {
 
 	pollCtx, cancelPoll := context.WithCancel(context.Background())
 	go service.StartPolling(pollCtx)
+	go consumer.Run(pollCtx)
 
 	return &App{
 		db: db,
@@ -58,6 +62,7 @@ func New(cfg *config.Config) (*App, error) {
 			Handler: mux,
 		},
 		cancelPoll: cancelPoll,
+		consumer:   consumer,
 	}, nil
 }
 
@@ -86,6 +91,10 @@ func (a *App) Run() error {
 func (a *App) Shutdown(ctx context.Context) error {
 	if a.cancelPoll != nil {
 		a.cancelPoll()
+	}
+
+	if a.consumer != nil {
+		_ = a.consumer.Close()
 	}
 
 	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)

@@ -11,19 +11,21 @@ import (
 
 	"github.com/alina965/pLaNtS/scheduler-service/internal/client"
 	"github.com/alina965/pLaNtS/scheduler-service/internal/config"
+	"github.com/alina965/pLaNtS/scheduler-service/internal/kafka"
 	"github.com/alina965/pLaNtS/scheduler-service/internal/scheduler"
 	"github.com/robfig/cron/v3"
 )
 
 type App struct {
-	cron   *cron.Cron
-	server *http.Server
+	cron     *cron.Cron
+	server   *http.Server
+	producer *kafka.WateringProducer
 }
 
 func New(cfg *config.Config) (*App, error) {
 	userPlantsClient := client.NewUserPlantsClient(cfg.UserPlantsURL, cfg.Timeout, cfg.InternalAPIKey)
-	telegramClient := client.NewTelegramClient(cfg.TelegramURL, cfg.Timeout, cfg.InternalAPIKey)
-	schedulerService := scheduler.NewService(cfg.Location, userPlantsClient, telegramClient)
+	producer := kafka.NewWateringProducer(cfg.KafkaBrokers, cfg.KafkaTopicWatering)
+	schedulerService := scheduler.NewService(cfg.Location, userPlantsClient, producer)
 
 	c, err := schedulerService.Setup()
 	if err != nil {
@@ -42,6 +44,7 @@ func New(cfg *config.Config) (*App, error) {
 			Addr:    cfg.Addr,
 			Handler: mux,
 		},
+		producer: producer,
 	}, nil
 }
 
@@ -77,5 +80,8 @@ func (a *App) Shutdown(ctx context.Context) error {
 
 	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
+
+	_ = a.producer.Close()
+
 	return a.server.Shutdown(shutdownCtx)
 }
