@@ -7,17 +7,19 @@ import (
 	"time"
 
 	"github.com/alina965/pLaNtS/scheduler-service/internal/client"
+	"github.com/alina965/pLaNtS/scheduler-service/internal/domain"
+	"github.com/alina965/pLaNtS/scheduler-service/internal/kafka"
 	"github.com/robfig/cron/v3"
 )
 
 type Service struct {
 	location string
 	plants   *client.UserPlantsClient
-	telegram *client.TelegramClient
+	producer *kafka.WateringProducer
 }
 
-func NewService(location string, plants *client.UserPlantsClient, telegram *client.TelegramClient) *Service {
-	return &Service{location: location, plants: plants, telegram: telegram}
+func NewService(location string, plants *client.UserPlantsClient, producer *kafka.WateringProducer) *Service {
+	return &Service{location: location, plants: plants, producer: producer}
 }
 
 func (s *Service) Setup() (*cron.Cron, error) {
@@ -63,8 +65,17 @@ func (s *Service) processDuePlants() {
 			continue
 		}
 
-		if err := s.telegram.Notify(ctx, plant.UserID, message); err != nil {
-			log.Printf("notify user %s about plant %s: %v", plant.UserID, plant.ID, err)
+		event := domain.WateringNotifyEvent{
+			UserID:     plant.UserID,
+			PlantID:    plant.ID,
+			PlantName:  plant.Name,
+			Status:     newStatus,
+			Text:       message,
+			OccurredAt: time.Now().UTC(),
+		}
+
+		if err := s.producer.Publish(ctx, event); err != nil {
+			log.Printf("publish watering notify: %v", err)
 			continue
 		}
 	}
