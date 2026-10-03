@@ -12,10 +12,18 @@
 
 ## Источники данных
 
-| Эндпоинт | Perenual | Wikipedia |
-|---|---|---|
-| `GET /plants` | да (species-list) | нет |
-| `GET /plants/{id}` | да (species details) | да, если есть scientific name |
+| Эндпоинт | Perenual | Wikipedia | Redis-кэш |
+|---|---|---|---|
+| `GET /plants` | да (species-list) | нет | ключ `perenual:list:page=…:q=…`, TTL list |
+| `GET /plants/{id}` | да (species details) | да, если есть scientific name | ключ `perenual:details:id=…`, TTL details |
+
+Ответы Perenual кэшируются в Redis (fail-open: при недоступности Redis запрос всё равно идёт во внешний API). Wikipedia не кэшируется отдельно.
+
+Проверка ключей:
+
+```bash
+docker exec -it redis redis-cli KEYS 'perenual:*'
+```
 
 ---
 
@@ -172,14 +180,15 @@ docker compose up -d --build
 
 ### Локально (только Go)
 
-1. Скопировать `.env.example` → `.env` и задать `PERENUAL_KEY`.
-2. Запустить сервис:
+1. Поднять Redis (`docker compose up -d redis`) или свой инстанс.
+2. Скопировать `.env.example` → `.env` и задать `PERENUAL_KEY`, `REDIS_ADDR` (с хоста обычно `localhost:6379`).
+3. Запустить сервис:
 
 ```bash
 go run ./cmd/server
 ```
 
-Postgres не нужен — plant-service ходит только во внешние API.
+Postgres не нужен — plant-service ходит во внешние API и Redis.
 
 ---
 
@@ -198,3 +207,6 @@ CORS на бэкенде пока **не настроен**. Если фронт
 | `ADDR` | Адрес сервера (по умолчанию `:8080`; в Docker обычно `:8081`) |
 | `TIMEOUT` | Таймаут HTTP-клиентов к Perenual/Wikipedia (например `10s`; по умолчанию `10s`) |
 | `PERENUAL_KEY` | API-ключ Perenual (**обязателен**) |
+| `REDIS_ADDR` | Адрес Redis (**обязателен**, например `redis:6379` или `localhost:6379`) |
+| `CACHE_TTL_LIST` | TTL кэша списка (по умолчанию `1h`) |
+| `CACHE_TTL_DETAILS` | TTL кэша details (по умолчанию `24h`) |
